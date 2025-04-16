@@ -74,3 +74,6 @@ Memory Model 정책
 #if 0 TLS Thread Local Storage
 	쓰레드마다 자신만 접근할수있는 공간이 있음.
 #endif
+
+#if 0 memory.
+#endif

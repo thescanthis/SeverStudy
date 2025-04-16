@@ -9,78 +9,68 @@
 #include <future>
 #include <windows.h>
 #include "ThreadManager.h"
+#include "RefCounting.h"
 
-class TestLock
+class Wraight : public RefCountable
 {
-	USE_LOCK;
 public:
-	int32 TestRead()
-	{
-		READ_LOCK;
-
-		if (_queue.empty())
-			return -1;
-
-		return _queue.front();
-	}
-
-	void TestPush()
-	{
-		WRITE_LOCK;
-		_queue.push(rand()% 100);
-	}
-	
-	void TestPop()
-	{
-		WRITE_LOCK;
-
-		if (_queue.empty() == false)
-		{
-			_queue.pop();
-		}
-	}
-
-private:
-	queue<int> _queue;
+	int _hp = 150;
+	int _posX = 0;
+	int _posY = 0;
 };
 
-//지금 에러가 나기때문에 에러를 찾아함 Lock Class에서
-TestLock testLock;
+using WarightRef = TSharedPtr<Wraight>;
 
-
-void ThreadWrite()
+class Missile : public RefCountable
 {
-	while (true)
+public:
+	void SetTarget(WarightRef target)
 	{
-		testLock.TestPush();
-		this_thread::sleep_for(1ms);
-		testLock.TestPop();
+		_target = target;
 	}
-}
 
-void TreadRead()
-{
-	while (true)
+	void Update()
 	{
-		int32 value = testLock.TestRead();
-		cout << "Value : " << value << '\n';
-		this_thread::sleep_for(1ms);
-		
+		if (_target == nullptr)
+			return;
+		int posX = _target->_posX;
+		int posY = _target->_posY;
+
+		//if (_target->_hp == 0)
+		//{
+		//	_target->ReleaseRef();
+		//	_target = nullptr;
+		//}
+		_target->_hp -= 10;
 	}
-}
+
+	WarightRef _target = nullptr;
+};
+
+
+using MissileRef = TSharedPtr<Missile>;
 
 int main()
 {
-	for (int i = 0; i < 2; i++)
-	{
-		GThreadManager->Launch(ThreadWrite);
-	}
+	WarightRef wraight(new Wraight());
+	wraight->ReleaseRef();
 
-	for (int i = 0; i < 5; i++)
-	{
-		GThreadManager->Launch(TreadRead);
-	}
-	GThreadManager->Join();
+	MissileRef missile(new Missile());
+	missile->ReleaseRef();
 
+	wraight = nullptr;
+
+
+	while (true)
+	{
+		missile->Update();
+		if (missile->_target->_hp == 0)
+		{
+			missile->_target->ReleaseRef();
+			missile->_target = nullptr;
+			missile = nullptr;
+			break;
+		}
+	}
 	return 0;
 }

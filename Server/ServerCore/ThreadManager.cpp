@@ -34,6 +34,7 @@ void ThreadManager::Join()
 		if (t.joinable())
 			t.join();
 	}
+	_threads.clear();
 }
 
 void ThreadManager::InitTLS()
