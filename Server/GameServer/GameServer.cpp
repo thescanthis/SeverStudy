@@ -1,76 +1,89 @@
-﻿// GameServer.cpp : 이 파일에는 'main' 함수가 포함됩니다. 거기서 프로그램 실행이 시작되고 종료됩니다.
-//
-
-#include "pch.h"
+﻿#include "pch.h"
 #include <iostream>
-#include <thread>
+#include "CorePch.h"
 #include <atomic>
 #include <mutex>
-#include <future>
 #include <windows.h>
+#include <future>
 #include "ThreadManager.h"
+
 #include "RefCounting.h"
+#include "Allocator.h"
+#include "Memory.h"
 
-class Wraight : public RefCountable
+using TL = TypeList<class Player, class Mage, class Knight, class Archer>;
+
+class Player
 {
 public:
-	int _hp = 150;
-	int _posX = 0;
-	int _posY = 0;
+	Player()
+	{
+		INIT_TL(Player);
+	}
+	virtual ~Player() {}
+
+	DECLARE_TL
 };
 
-using WarightRef = TSharedPtr<Wraight>;
-
-class Missile : public RefCountable
+class Knight : public Player
 {
 public:
-	void SetTarget(WarightRef target)
+	Knight()
 	{
-		_target = target;
+		INIT_TL(Knight);
 	}
-
-	void Update()
-	{
-		if (_target == nullptr)
-			return;
-		int posX = _target->_posX;
-		int posY = _target->_posY;
-
-		//if (_target->_hp == 0)
-		//{
-		//	_target->ReleaseRef();
-		//	_target = nullptr;
-		//}
-		_target->_hp -= 10;
-	}
-
-	WarightRef _target = nullptr;
 };
 
+class Mage : public Player
+{
+public:
+	Mage()
+	{
+		INIT_TL(Mage);
+	}
+};
 
-using MissileRef = TSharedPtr<Missile>;
+class Archer : public Player
+{
+public:
+	Archer()
+	{
+		INIT_TL(Archer);
+	}
+};
+
+class Dog
+{
+
+};
 
 int main()
 {
-	WarightRef wraight(new Wraight());
-	wraight->ReleaseRef();
+	//TypeList<Mage, Knight>::Head whoAMI;
+	//TypeList<Mage, Knight>::Tail whoAMI2;
+	//TypeList<Mage, TypeList<Knight, Archer>>::Head whoAMI3;
+	//TypeList<Mage, TypeList<Knight, Archer>>::Tail::Head whoAMI4;
+	//TypeList<Mage, TypeList<Knight, Archer>>::Tail::Tail whoAMI5;
+	//
+	//int32 len1 = Length<TypeList<Mage, Knight>>::value;
+	//int32 len2 = Length<TypeList<Mage, Knight, Archer>>::value;
+	//using TL = TypeList<Player ,Mage, Knight, Archer>;
+	//TypeAt<TL, 0>::Result;
+	//
+	//int32 idx1 = IndexOf<TL, Mage>::value;
+	//
+	//bool b1 = Conversion<Player, Knight>::exists;
+	//bool b2 = Conversion<Knight, Player>::exists;
+	//bool b3 = Conversion<Knight, Dog>::exists;
 
-	MissileRef missile(new Missile());
-	missile->ReleaseRef();
-
-	wraight = nullptr;
-
-
-	while (true)
 	{
-		missile->Update();
-		if (missile->_target->_hp == 0)
-		{
-			missile->_target->ReleaseRef();
-			missile->_target = nullptr;
-			missile = nullptr;
-			break;
-		}
+		Player* player = new Knight();
+		bool canCast = CanCast<Knight*>(player);
+		Knight* knight = TypeCast<Knight*>(player);
+
+		delete player;
 	}
+
+
 	return 0;
 }
