@@ -22,70 +22,74 @@ int main()
 {
 	//Init
 	WSAData wsaData;
-	int err = ::WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (err != 0)
+	
+	if (::WSAStartup(MAKEWORD(2, 2), &wsaData)!=0)
 		return 0;
 
-	//정수형 포인터를 리턴
-	SOCKET clientSocket = ::socket(AF_INET, SOCK_DGRAM, 0);
+	
+	SOCKET clientSocket = ::socket(AF_INET, SOCK_STREAM, 0);
 	
 	if (clientSocket == INVALID_SOCKET)
-	{
-		HandleError("Socket");
 		return 0;
-	}
 
-	//연결할 목적지는? (IP주소 + Port == 동일해야 접근 가능.)
+	u_long on = 1;
+	if (::ioctlsocket(clientSocket, FIONBIO, &on) == INVALID_SOCKET)
+		return 0;
+
 	SOCKADDR_IN serverAddr;
 	::memset(&serverAddr, 0, sizeof(serverAddr));
-
 	serverAddr.sin_family = AF_INET;
-	//serverAddr.sin_addr.s_addr = ::inet_addr("127.0.0.1"); 구시대//신시대
 	::inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr);
-	serverAddr.sin_port = ::htons(7777); // host to network short
+	serverAddr.sin_port = ::htons(7777);
 
-	//Connected UDP
-	::connect(clientSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
-
+	// Connect
 	while (true)
 	{
-		//TODO
-		char sendBuffer[100] = "Hello World!";
-
-		//Unconected UDP
-		//int32 result = ::sendto(clientSocket, sendBuffer, sizeof(sendBuffer), 0,
-		//	(SOCKADDR*)&serverAddr, sizeof(serverAddr));
-
-		int32 result = ::send(clientSocket, sendBuffer, sizeof(sendBuffer),0);
-
-		if (result == SOCKET_ERROR)
+		if (::connect(clientSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 		{
-			HandleError("SendTo");
-			return 0;
+			// 원래 블록했어야 했는데... 너가 논블로킹으로 하라며?
+			if (::WSAGetLastError() == WSAEWOULDBLOCK)
+				continue;
+			// 이미 연결된 상태라면 break
+			if (::WSAGetLastError() == WSAEISCONN)
+				break;
+			// Error
+			break;
 		}
-		
+	}
 
-		cout << "Send Data! Len =" << sizeof(sendBuffer) << '\n';
+	cout << "Connected to Server!" << endl;
 
-		SOCKADDR_IN recvAddr;
-		::memset(&recvAddr, 0, sizeof(recvAddr));
-		int32 addrLen = sizeof(recvAddr);
+	char sendBuffer[100] = "Hello World";
+	WSAEVENT wsaEvent = ::WSACreateEvent();
+	WSAOVERLAPPED overlapped = {};
+	overlapped.hEvent = wsaEvent;
 
-		char recvBuffer[1000];
+	// Send
+	while (true)
+	{
+		WSABUF wsaBuf;
+		wsaBuf.buf = sendBuffer;
+		wsaBuf.len = 100;
 
-		//Unconected UDP
-		//int32 recvLen = ::recvfrom(clientSocket, recvBuffer, sizeof(recvBuffer), 0
-		//,(SOCKADDR*)&recvAddr,&addrLen);
-		
-		int32 recvLen = ::recv(clientSocket, recvBuffer, sizeof(recvBuffer),0);
-		if (recvLen <= 0)
+		DWORD sendLen = 0;
+		DWORD flags = 0;
+		if (::WSASend(clientSocket, &wsaBuf, 1, &sendLen, flags, &overlapped, nullptr) == SOCKET_ERROR)
 		{
-			HandleError("RecvFrom");
-			return 0;
+			if (::WSAGetLastError() == WSA_IO_PENDING)
+			{
+				// Pending
+				::WSAWaitForMultipleEvents(1, &wsaEvent, TRUE, WSA_INFINITE, FALSE);
+				::WSAGetOverlappedResult(clientSocket, &overlapped, &sendLen, FALSE, &flags);
+			}
+			else
+			{
+				// 진짜 문제 있는 상황
+				break;
+			}
 		}
-		
-		cout << "Send Data! Data =" << recvBuffer << '\n';
-		cout << "Send Data! Len =" << recvLen << '\n';
+
+		cout << "Send Data ! Len = " << sizeof(sendBuffer) << endl;
 
 		this_thread::sleep_for(1s);
 	}

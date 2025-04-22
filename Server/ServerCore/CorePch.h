@@ -9,7 +9,16 @@
 #include <iostream>
 using namespace std;
 
+/*---------------
+	SockProgram
+---------------*/
+#include <WinSock2.h>
+#include <mswsock.h>
+#include <ws2tcpip.h>
+#pragma comment(lib,"ws2_32.lib")
+
 #include "Lock.h"
 #include "ObjectPool.h"
 #include "TypeCast.h"
+#include "Memory.h"
 
