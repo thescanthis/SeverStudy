@@ -52,6 +52,35 @@ int main()
 	while (true)
 	{
 		//TODO
+		char sendBuffer[100] = "Hello World!";
+
+		for (int i = 0; i < 10; i++)
+		{
+			int32 result = ::send(clientSocket, sendBuffer, sizeof(sendBuffer), 0);
+
+			if (result == SOCKET_ERROR)
+			{
+				int32 errorCode = ::WSAGetLastError();
+				cout << "SOCKET_ERROR:" << errorCode << '\n';
+				return 0;
+			}
+		}
+
+		cout << "Send Data! Len =" << sizeof(sendBuffer) << '\n';
+
+		//char recvBuffer[1000];
+		//int32 recvLen = ::recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+		//
+		//if (recvLen <= 0)
+		//{
+		//	int32 errorCode = ::WSAGetLastError();
+		//	cout << "Recv_ERROR:" << errorCode << '\n';
+		//	return 0;
+		//}
+		//
+		//cout << "Send Data! Data =" << recvBuffer << '\n';
+		//cout << "Send Data! Len =" << recvLen << '\n';
+
 		this_thread::sleep_for(1s);
 	}
 

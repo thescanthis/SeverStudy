@@ -80,6 +80,34 @@ int main()
 		cout << "Client Connected IP = " << ipAddress << '\n';
 
 		//TODO
+
+		while (true)
+		{
+			char recvBuffer[1000];
+			this_thread::sleep_for(1s);
+
+			int32 recvLen = ::recv(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+
+			if (recvLen <=0)
+			{
+				int32 errorCode = ::WSAGetLastError();
+				cout << "Recv_ERROR:" << errorCode << '\n';
+				return 0;
+			}
+
+			cout << "Send Data! Data =" << recvBuffer << '\n';
+			cout << "Send Data! Len =" << recvLen << '\n';
+
+			//int32 result = ::send(clientSocket, recvBuffer, sizeof(recvBuffer), 0);
+			//
+			//if (result == SOCKET_ERROR)
+			//{
+			//	int32 errorCode = ::WSAGetLastError();
+			//	cout << "SOCKET_ERROR:" << errorCode << '\n';
+			//	return 0;
+			//}
+
+		}
 	}
 	return 0;
 }
