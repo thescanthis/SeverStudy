@@ -88,7 +88,7 @@ void Listener::RegisterAccept(AcceptEvent* acceptEvent)
 		const int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
-			// 일단 다시 Accept 걸어준다
+			//accept를 할게 없기때문에 다시 한번 해야함.
 			RegisterAccept(acceptEvent);
 		}
 	}
@@ -100,6 +100,7 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 
 	if (false == SocketUtils::SetUpdateAcceptSocket(session->GetSocket(), _socket))
 	{
+		//실패를 했으면 다시 손님을 받아야 하기때문에 다시한번 해야함.
 		RegisterAccept(acceptEvent);
 		return;
 	}
@@ -113,10 +114,7 @@ void Listener::ProcessAccept(AcceptEvent* acceptEvent)
 	}
 
 	session->SetNetAddress(NetAddress(sockAddress));
-
-	cout << "Client Connected!" << endl;
-
-	// TODO
+	session->ProcessConnect();
 
 	RegisterAccept(acceptEvent);
 }
