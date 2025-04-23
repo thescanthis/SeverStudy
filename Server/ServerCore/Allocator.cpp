@@ -2,7 +2,7 @@
 #include "Allocator.h"
 #include "Memory.h"
 
-void* BaseAllocator::Alloc(int size)
+void* BaseAllocator::Alloc(int32 size)
 {
 	return ::malloc(size);
 }
@@ -14,10 +14,10 @@ void BaseAllocator::Release(void* ptr)
 
 /*------------------------
 	  StompAllocator
-메모리 오염을 방지하는 기법.
+Techniques to prevent memory contamination.
 -------------------------*/
 
-void* StompAllocator::Alloc(int size)
+void* StompAllocator::Alloc(int32 size)
 {
 	const int64 pageCount = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 	const int64 dataOffset = pageCount * PAGE_SIZE - size;
@@ -35,7 +35,7 @@ void StompAllocator::Release(void* ptr)
 /*------------------------
 	  PoolAllocator
 -------------------------*/
-void* PoolAllocator::Alloc(int size)
+void* PoolAllocator::Alloc(int32 size)
 {
 	return GMemory->Allocate(size);
 }

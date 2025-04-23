@@ -7,8 +7,8 @@
 class BaseAllocator
 {
 public:
-	static void* Alloc(int size);
-	static void Release(void* ptr);
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
 };
 
 /*------------------------
@@ -18,11 +18,11 @@ public:
 
 class StompAllocator
 {
-public:
 	enum { PAGE_SIZE = 0x1000 };
+
 public:
-	static void* Alloc(int size);
-	static void Release(void* ptr);
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
 };
 
 /*------------------------
@@ -32,8 +32,8 @@ public:
 class PoolAllocator
 {
 public:
-	static void* Alloc(int size);
-	static void Release(void* ptr);
+	static void*	Alloc(int32 size);
+	static void		Release(void* ptr);
 };
 
 /*------------------------
@@ -46,14 +46,14 @@ class StlAllocator
 public:
 	using value_type = T;
 
-	StlAllocator() {}
+	StlAllocator() { }
 
 	template<typename Other>
-	StlAllocator(const StlAllocator<Other>&) {}
+	StlAllocator(const StlAllocator<Other>&) { }
 
 	T* allocate(size_t count)
 	{
-		const int32 size = static_cast<int32> (count * sizeof(T));
+		const int32 size = static_cast<int32>(count * sizeof(T));
 		return static_cast<T*>(PoolAllocator::Alloc(size));
 	}
 

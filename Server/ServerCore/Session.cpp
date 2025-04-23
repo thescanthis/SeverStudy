@@ -2,9 +2,9 @@
 #include "Session.h"
 #include "SocketUtils.h"
 
-/*-------------
+/*--------------
 	Session
--------------*/
+---------------*/
 
 Session::Session()
 {
@@ -23,5 +23,5 @@ HANDLE Session::GetHandle()
 
 void Session::Dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
 {
-	//TODO
+	// TODO
 }

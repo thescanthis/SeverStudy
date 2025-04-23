@@ -3,6 +3,10 @@
 
 class MemoryPool;
 
+/*-------------
+	Memory
+---------------*/
+
 class Memory
 {
 	enum
@@ -16,7 +20,7 @@ public:
 	Memory();
 	~Memory();
 
-	void* Allocate(int32 size);
+	void*	Allocate(int32 size);
 	void	Release(void* ptr);
 
 private:
@@ -33,7 +37,7 @@ Type* xnew(Args&&... args)
 	Type* memory = static_cast<Type*>(PoolAllocator::Alloc(sizeof(Type)));
 
 	//placement new 생성자 호출문법
-	new(memory)Type(std::forward<Args>(args)...);
+	new(memory)Type(forward<Args>(args)...);
 	return memory;
 }
 
@@ -44,8 +48,8 @@ void xdelete(Type* obj)
 	PoolAllocator::Release(obj);
 }
 
-template<typename Type>
-shared_ptr<Type>MakeShared()
+template<typename Type,typename... Args>
+shared_ptr<Type>MakeShared(Args&&... args)
 {
-	return shared_ptr<Type>{xnew<Type>(), xdelete<Type>};
+	return shared_ptr<Type>{ xnew<Type>(forward<Args>(args)...), xdelete<Type> };
 }

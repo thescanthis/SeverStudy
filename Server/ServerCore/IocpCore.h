@@ -1,21 +1,23 @@
 #pragma once
 
-/*----------------------
-	  IocpCoreObject ->Seesion
-----------------------*/
-class IocpObject
+/*----------------
+	IocpObject
+-----------------*/
+// 1. The object is not yet owned by the shared_ptr.
+// 2. If you wrapped it with this without shared_ptr.
+// 3. When you call a shared_form_this from within a constructor
+
+class IocpObject : public enable_shared_from_this<IocpObject>
 {
 public:
-	virtual HANDLE GetHandle() = 0;
-	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) = 0;
+	virtual HANDLE GetHandle() abstract;
+	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) abstract;
 };
 
-/*----------------------
-		IocpCore
-----------------------*/
+/*--------------
+	IocpCore
+---------------*/
 
-
-//My Handle
 class IocpCore
 {
 public:
@@ -24,13 +26,9 @@ public:
 
 	HANDLE		GetHandle() { return _iocpHandle; }
 
-	bool		Register(class IocpObject* iocpObject);
-	bool		Dispatch(uint32 timeoutMs = INFINITE); //->Check if there is a job in the internal thread
+	bool		Register(IocpObjectRef iocpObject);
+	bool		Dispatch(uint32 timeoutMs = INFINITE);
 
 private:
-
 	HANDLE		_iocpHandle;
 };
-
-//
-extern IocpCore GIocpCore;

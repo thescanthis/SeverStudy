@@ -1,34 +1,24 @@
-﻿// DummyClient.cpp : 이 파일에는 'main' 함수가 포함됩니다. 거기서 프로그램 실행이 시작되고 종료됩니다.
-//
-
-#include "pch.h"
+﻿#include "pch.h"
 #include <iostream>
 
-/*---------------
-	SockProgram
----------------*/
-#include <WinSock2.h>
+#include <winsock2.h>
 #include <mswsock.h>
 #include <ws2tcpip.h>
-#pragma comment(lib,"ws2_32.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 void HandleError(const char* cause)
 {
-	int32 errorCode = ::WSAGetLastError();
-	cout << cause << "ErrorCode" << errorCode << '\n';
+	int32 errCode = ::WSAGetLastError();
+	cout << cause << " ErrorCode : " << errCode << endl;
 }
 
 int main()
 {
-	//Init
 	WSAData wsaData;
-	
-	if (::WSAStartup(MAKEWORD(2, 2), &wsaData)!=0)
+	if (::WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		return 0;
 
-	
 	SOCKET clientSocket = ::socket(AF_INET, SOCK_STREAM, 0);
-	
 	if (clientSocket == INVALID_SOCKET)
 		return 0;
 
@@ -94,7 +84,9 @@ int main()
 		this_thread::sleep_for(1s);
 	}
 
+	// 소켓 리소스 반환
 	::closesocket(clientSocket);
+
+	// 윈속 종료
 	::WSACleanup();
 }
-
