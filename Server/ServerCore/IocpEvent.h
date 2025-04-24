@@ -81,5 +81,5 @@ public:
 
 	//TEMP
 
-	vector<BYTE> buffer;
+	Vector<SendBufferRef> sendBuffers;
 };

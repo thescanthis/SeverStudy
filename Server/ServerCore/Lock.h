@@ -29,13 +29,13 @@ class Lock
 public:
 
 	void WriteLock(const char* name);
-	void WriteUnLock(const char* name);
+	void WriteUnlock(const char* name);
 	void ReadLock(const char* name);
-	void ReadUnLock(const char* name);
+	void ReadUnlock(const char* name);
 private:
 
 	Atomic<uint32> _lockFlag = EMPTY_FLAG;
-	uint16 _wirteCount = 0;
+	uint16 _writeCount = 0;
 };
 
 
@@ -47,7 +47,7 @@ class ReadLockGuard
 {
 public:
 	ReadLockGuard(Lock& lock,const char* name) : _lock(lock), _name(name) { _lock.ReadLock(name); }
-	~ReadLockGuard() { _lock.ReadUnLock(_name); }
+	~ReadLockGuard() { _lock.ReadUnlock(_name); }
 private:
 	Lock& _lock;
 	const char* _name;
@@ -57,7 +57,7 @@ class WriteLockGuard
 {
 public:
 	WriteLockGuard(Lock& lock, const char* name) : _lock(lock),_name(name) { _lock.WriteLock(name); }
-	~WriteLockGuard() { _lock.WriteUnLock(_name); }
+	~WriteLockGuard() { _lock.WriteUnlock(_name); }
 private:
 	Lock& _lock;
 	const char* _name;
