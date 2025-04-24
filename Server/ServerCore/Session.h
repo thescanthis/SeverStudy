@@ -18,6 +18,8 @@ public:
 	virtual ~Session();
 
 public:
+						/*외부에서 사용*/
+	void				Send(BYTE* buffer, int32 len);
 	void				Disconnect(const WCHAR* cause);
 
 	shared_ptr<Service> GetService() { return _service.lock(); }
@@ -41,11 +43,11 @@ private:
 						/*전송 관련*/
 	void				RegisterConnect();
 	void				RegisterRecv();
-	void				RegisterSend();
+	void				RegisterSend(SendEvent* sendEvent);
 
 	void				ProcessConnect();
 	void				ProcessRecv(int32 numOfBytes);
-	void				ProcessSend(int32 numOfBytes);
+	void				ProcessSend(SendEvent* sendEvent, int32 numOfBytes);
 	
 	void				HandleError(int32 errorCode);
 
@@ -58,7 +60,11 @@ protected:
 
 public:
 	// TEMP
-	char _recvBuffer[1000];
+	BYTE _recvBuffer[1000];
+
+	// Circular Buffer[     ] -> 복사비용이 있음.
+	//char _sendBuffer[1000];
+	//int32 _sendLen;
 
 private:
 	weak_ptr<Service>	_service;
@@ -74,6 +80,7 @@ private:
 
 private:
 
+						/*IocpEvent 재사용*/
 	RecvEvent			_recvEvent;
 };
 

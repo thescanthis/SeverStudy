@@ -17,6 +17,24 @@ Session::~Session()
 	SocketUtils::Close(_socket);
 }
 
+void Session::Send(BYTE* buffer, int32 len)
+{
+	//생각할 문제
+	//1) 버퍼관리?
+	//2) sendEvent 관리? 단일 여러개? WsaSend 중첩?
+
+	//TEMP
+
+	SendEvent* sendEvent = xnew<SendEvent>();
+	sendEvent->owner = shared_from_this();
+
+	sendEvent->buffer.resize(len);
+	::memcpy(sendEvent->buffer.data(), buffer, len);
+
+	WRITE_LOCK;
+	RegisterSend(sendEvent);
+}
+
 void Session::Disconnect(const WCHAR* cause)
 {
 	if (_connected.exchange(false) == false)
@@ -46,7 +64,7 @@ void Session::Dispatch(IocpEvent* iocpEvent, int32 numOfBytes)
 		ProcessRecv(numOfBytes);
 		break;
 	case EventType::Send:
-		ProcessSend(numOfBytes);
+		ProcessSend(static_cast<SendEvent*>(iocpEvent),numOfBytes);
 		break;
 	default:
 		break;
@@ -84,8 +102,27 @@ void Session::RegisterRecv()
 	}
 }
 
-void Session::RegisterSend()
+void Session::RegisterSend(SendEvent* sendEvent)
 {
+	if (IsConnected() == false)
+		return;
+
+	WSABUF wsaBuf;
+	wsaBuf.buf = (char*)sendEvent->buffer.data();
+	wsaBuf.len = (ULONG)sendEvent->buffer.size();
+
+	DWORD numOfbytes = 0;
+
+	if (SOCKET_ERROR==::WSASend(_socket, &wsaBuf, 1, OUT & numOfbytes, 0, sendEvent, nullptr))
+	{
+		int32 errorCode = ::WSAGetLastError();
+		if (errorCode != WSA_IO_PENDING)
+		{
+			HandleError(errorCode);
+			sendEvent->owner = nullptr;
+			xdelete(sendEvent);
+		}
+	}
 }
 
 void Session::ProcessConnect()
@@ -112,15 +149,26 @@ void Session::ProcessRecv(int32 numOfBytes)
 		return;
 	}
 
-	//ToDO
-	cout << "Recv Data Len = " << numOfBytes << '\n';
+	//컨텐츠 코드에서 오버로딩
+	OnRecv(_recvBuffer,numOfBytes);
 
 	//수신 등록
 	RegisterRecv();
 }
 
-void Session::ProcessSend(int32 numOfBytes)
+void Session::ProcessSend(SendEvent* sendEvent, int32 numOfBytes)
 {
+	sendEvent->owner = nullptr; // RELEASE REF
+	xdelete(sendEvent);
+
+	if (numOfBytes == 0)
+	{
+		Disconnect(L"Send 0");
+		return;
+	}
+
+	//컨텐츠 코드에서 오버로딩
+	OnSend(numOfBytes);
 }
 
 void Session::HandleError(int32 errorCode)
