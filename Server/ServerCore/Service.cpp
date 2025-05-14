@@ -68,7 +68,7 @@ bool ClientService::Start()
 	for (int32 i = 0; i < sessionCount; i++)
 	{
 		SessionRef session = CreateSession();
-		if (session->Connects() == false)
+		if (session->Connect() == false)
 			return false;
 	}
 	return true;

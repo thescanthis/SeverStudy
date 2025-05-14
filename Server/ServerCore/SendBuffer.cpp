@@ -1,10 +1,13 @@
 #include "pch.h"
 #include "SendBuffer.h"
 
-SendBuffer::SendBuffer(SendBufferChunkRef owner, BYTE* buffer, int32 allocSize)
-	:_owner(owner), _buffer(buffer), _allocSize(allocSize)
+/*----------------
+	SendBuffer
+-----------------*/
+
+SendBuffer::SendBuffer(SendBufferChunkRef owner, BYTE* buffer, uint32 allocSize)
+	: _owner(owner), _buffer(buffer), _allocSize(allocSize)
 {
-	
 }
 
 SendBuffer::~SendBuffer()
@@ -14,10 +17,13 @@ SendBuffer::~SendBuffer()
 void SendBuffer::Close(uint32 writeSize)
 {
 	ASSERT_CRASH(_allocSize >= writeSize);
-	
 	_writeSize = writeSize;
 	_owner->Close(writeSize);
 }
+
+/*--------------------
+	SendBufferChunk
+--------------------*/
 
 SendBufferChunk::SendBufferChunk()
 {
@@ -52,7 +58,10 @@ void SendBufferChunk::Close(uint32 writeSize)
 	_usedSize += writeSize;
 }
 
-//[                       ] Chunk에서 일부를 쪼개서 쓰자라는 부분
+/*---------------------
+	SendBufferManager
+----------------------*/
+
 SendBufferRef SendBufferManager::Open(uint32 size)
 {
 	if (LSendBufferChunk == nullptr)
@@ -60,23 +69,25 @@ SendBufferRef SendBufferManager::Open(uint32 size)
 		LSendBufferChunk = Pop(); // WRITE_LOCK
 		LSendBufferChunk->Reset();
 	}
-		
+
 	ASSERT_CRASH(LSendBufferChunk->IsOpen() == false);
 
-	//다 썻으면 버리고 새거로 교체
+	// 다 썼으면 버리고 새거로 교체
 	if (LSendBufferChunk->FreeSize() < size)
 	{
 		LSendBufferChunk = Pop(); // WRITE_LOCK
 		LSendBufferChunk->Reset();
 	}
 
-	cout << "FREE : " << LSendBufferChunk->FreeSize() << '\n';
+	cout << "FREE : " << LSendBufferChunk->FreeSize() << endl;
 
 	return LSendBufferChunk->Open(size);
 }
 
 SendBufferChunkRef SendBufferManager::Pop()
 {
+	cout << "Pop SENDBUFFERCHUNK" << endl;
+
 	{
 		WRITE_LOCK;
 		if (_sendBufferChunks.empty() == false)
@@ -87,7 +98,7 @@ SendBufferChunkRef SendBufferManager::Pop()
 		}
 	}
 
-	return SendBufferChunkRef(xnew<SendBufferChunk>(),PushGlobal);
+	return SendBufferChunkRef(xnew<SendBufferChunk>(), PushGlobal);
 }
 
 void SendBufferManager::Push(SendBufferChunkRef buffer)
@@ -98,5 +109,7 @@ void SendBufferManager::Push(SendBufferChunkRef buffer)
 
 void SendBufferManager::PushGlobal(SendBufferChunk* buffer)
 {
+	cout << "PushGlobal SENDBUFFERCHUNK" << endl;
+
 	GSendBufferManager->Push(SendBufferChunkRef(buffer, PushGlobal));
 }

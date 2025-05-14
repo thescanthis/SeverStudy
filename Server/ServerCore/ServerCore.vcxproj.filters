@@ -4,9 +4,6 @@
     <Filter Include="Network">
       <UniqueIdentifier>{6ee6a637-0ea9-4e85-befa-c1517e8ce0d1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Utils">
-      <UniqueIdentifier>{46533670-ce8e-4779-a525-3a611edc6a50}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Main">
       <UniqueIdentifier>{3ce86e45-2690-430b-9c51-be8e2faa5419}</UniqueIdentifier>
     </Filter>
@@ -18,24 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CorePch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Types.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreMacro.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreGlobal.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CoreTLS.h">
-      <Filter>Main</Filter>
-    </ClInclude>
     <ClInclude Include="ThreadManager.h">
       <Filter>Thread</Filter>
     </ClInclude>
@@ -93,20 +72,28 @@
     <ClInclude Include="SendBuffer.h">
       <Filter>Network</Filter>
     </ClInclude>
+    <ClInclude Include="CoreGlobal.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreMacro.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="CorePch.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="CoreTLS.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Types.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferReader.h" />
+    <ClInclude Include="BufferWriter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CorePch.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreGlobal.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="CoreTLS.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
     <ClCompile Include="ThreadManager.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
@@ -158,5 +145,19 @@
     <ClCompile Include="SendBuffer.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="CoreGlobal.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="CorePch.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="CoreTLS.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferReader.cpp" />
+    <ClCompile Include="BufferWriter.cpp" />
   </ItemGroup>
 </Project>
