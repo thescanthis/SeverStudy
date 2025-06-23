@@ -45,8 +45,10 @@ struct PKT_S_TEST
 	{
 		uint32 size = 0;
 		size += sizeof(PKT_S_TEST);
-		size += buffsCount * sizeof(BuffListItem);
+		if (packetSize < size)
+			return false;
 
+		size += buffsCount * sizeof(BuffListItem);
 		if (size != packetSize)
 			return false;
 
@@ -55,32 +57,43 @@ struct PKT_S_TEST
 
 		return true;
 	}
+
+	using BuffsList = PacketList<PKT_S_TEST::BuffListItem>;
+
+	BuffsList GetBuffsList()
+	{
+		BYTE* data = reinterpret_cast<BYTE*>(this);
+		data += buffsOffset;
+
+		return BuffsList(reinterpret_cast<PKT_S_TEST::BuffListItem*>(data), buffsCount);
+	}
 };
 #pragma pack()
-
+//[][															]
 void ClientPacketHandler::Handle_S_TEST(BYTE* buffer, int32 len)
 {
 	BufferReader br(buffer, len);
 
-	if (len < sizeof(PKT_S_TEST))
+	PKT_S_TEST* pkt = reinterpret_cast<PKT_S_TEST*>(buffer);
+
+	if (pkt->Validate() == false)
 		return;
 
-	PKT_S_TEST pkt;
-	br >> pkt;
+	PKT_S_TEST::BuffsList buffs = pkt->GetBuffsList();
 
-	if (pkt.Validate() == false)
-		return;
-
-	//cout << "ID: " << id << "HP: " << hp << "ATTACK: " << attack << '\n';
-
-	vector<PKT_S_TEST::BuffListItem> buffs;
-	buffs.resize(pkt.buffsCount);
-	for (int32 i = 0; i < pkt.buffsCount; i++)
-		br >> buffs[i];
-
-	cout << "BuffCount: " << pkt.buffsCount << endl;
-	for (int32 i = 0; i < pkt.buffsCount; i++)
+	cout << "BufCount: " << buffs.Count()<<'\n';
+	for (int32 i = 0; i < buffs.Count(); i++)
 	{
 		cout << "BufInfo: " << buffs[i].buffId <<" "<< buffs[i].remainTime << '\n';
+	}
+
+	for (auto it = buffs.begin(); it != buffs.end(); ++it)
+	{
+		cout << "BufInfo : " << it->buffId << " " << it->remainTime << '\n';
+	}
+
+	for (auto& buff : buffs)
+	{
+		cout << "BufInfo : " << buff.buffId << " " << buff.remainTime << '\n';
 	}
 }
