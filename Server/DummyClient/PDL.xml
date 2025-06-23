@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PDL>
+    <Packet name="S_TEST" desc="테스트 용도">
+        <Filed name="id" tpye="uint64" desc=""/>
+        <Filed name="hp" tpye="uint32" desc=""/>
+        <Filed name="attack" tpye="uint16" desc=""/>
+        <List name="buffs" desc="">
+          <Filed name="buffId" tpye="uint64" desc=""/>
+          <Filed name="remainTime" tpye="float" desc=""/>
+        </List>
+    </Packet>
+</PDL>

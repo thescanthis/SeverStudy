@@ -8,6 +8,8 @@
 #include "ServerPacketHandler.h"
 #include "tchar.h"
 
+
+
 int main()
 {
 	ServerServiceRef service = MakeShared<ServerService>(
@@ -40,7 +42,7 @@ int main()
 		SendBufferRef sendBuffer = ServerPacketHandler::Make_S_TEST(1001, 100, 10, buffs,L"안녕하세요");
 		GSessionManager.Broadcast(sendBuffer);
 
-		this_thread::sleep_for(250ms);
+		std::this_thread::sleep_for(250ms);
 	}
 
 	GThreadManager->Join();
