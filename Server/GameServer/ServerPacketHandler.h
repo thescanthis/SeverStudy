@@ -63,6 +63,10 @@ struct PKT_S_TEST
 	{
 		uint64 buffId;
 		float remainTime;
+
+		//victim List
+		uint16 victimsOffset;
+		uint16 victimsCount;
 	};
 
 	uint16 packetSize; //공용헤더
@@ -79,6 +83,7 @@ class PKT_S_TEST_WRITE
 public:
 	using BuffsListItem = PKT_S_TEST::BuffListItem;
 	using BuffsList = PacketList<PKT_S_TEST::BuffListItem>;
+	using BuffsVictimsList = PacketList<uint64>;
 
 	PKT_S_TEST_WRITE(uint64 id, uint32 hp, uint16 attack)
 	{
@@ -98,7 +103,27 @@ public:
 	//내가 사용할 버퍼의 갯수를 지정.
 	BuffsList ReserveBuffList(uint16 buffCount)
 	{
-		BuffsListItem* firstBuffsListItme = _bw.Reserve<BuffsListItem>(buffCount);
+		BuffsListItem* firstBuffsListItem = _bw.Reserve<BuffsListItem>(buffCount);
+		
+		_pkt->buffsOffset = (uint64)firstBuffsListItem - (uint64)_pkt;
+		_pkt->buffsCount = buffCount;
+		return BuffsList(firstBuffsListItem, buffCount);
+	}
+
+	BuffsVictimsList ReserveBuffsVictimsList(BuffsListItem* buffsItem, uint16 victimsCount)
+	{
+		uint64* firstVictimsListItem = _bw.Reserve<uint64>(victimsCount);
+		buffsItem->victimsOffset = (uint64)firstVictimsListItem - (uint64)_pkt;
+		buffsItem->victimsCount = victimsCount;
+		return BuffsVictimsList(firstVictimsListItem, victimsCount);
+	}
+
+	SendBufferRef CloseAndRetrun()
+	{
+		_pkt->packetSize = _bw.WriteSize();
+		_sendBuffer->Close(_bw.WriteSize());
+
+		return _sendBuffer;
 	}
 
 private:
