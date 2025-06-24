@@ -7,7 +7,7 @@
 #include "BufferWriter.h"
 #include "ServerPacketHandler.h"
 #include "tchar.h"
-
+#include "Protocol.pb.h"
 
 
 int main()
@@ -38,32 +38,29 @@ int main()
 
 	while (true)
 	{
-		PKT_S_TEST_WRITE pktWriter(1001, 100, 10);
-		PKT_S_TEST_WRITE::BuffsList buffList = pktWriter.ReserveBuffList(3);
-		buffList[0] = { 100,1.5f };
-		buffList[1] = { 200,2.3f };
-		buffList[2] = { 300,0.7f };
+		Protocol::S_TEST pkt;
+		pkt.set_id(1000);
+		pkt.set_hp(100);
+		pkt.set_attack(10);
 
-		PKT_S_TEST_WRITE::BuffsVictimsList vic0 = pktWriter.ReserveBuffsVictimsList(&buffList[0], 3);
 		{
-			vic0[0] = 1000;
-			vic0[1] = 2000;
-			vic0[2] = 3000;
+			Protocol::BuffData* data = pkt.add_buffs();
+			data->set_buffid(100);
+			data->set_remaintime(1.2f);
+			data->add_victims(4000);
 		}
 
-		PKT_S_TEST_WRITE::BuffsVictimsList vic1 = pktWriter.ReserveBuffsVictimsList(&buffList[1], 1);
 		{
-			vic1[0] = 4000;
+			Protocol::BuffData* data = pkt.add_buffs();
+			data->set_buffid(200);
+			data->set_remaintime(2.2f);
+			data->add_victims(1000);
+			data->add_victims(2000);
 		}
 
-		PKT_S_TEST_WRITE::BuffsVictimsList vic2 = pktWriter.ReserveBuffsVictimsList(&buffList[2], 2);
-		{
-			vic2[0] = 5000;
-			vic2[1] = 6000;
-		}
+		 SendBufferRef sendBuffer =  ServerPacketHandler::MakeSendBuffer(pkt);
+		 GSessionManager.Broadcast(sendBuffer);
 
-		SendBufferRef sendBuffer = pktWriter.CloseAndRetrun();
-		GSessionManager.Broadcast(sendBuffer);
 		std::this_thread::sleep_for(250ms);
 	}
 
