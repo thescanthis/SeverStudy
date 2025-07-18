@@ -78,4 +78,6 @@ Memory Model 정책
 #endif
 
 #if 0 memory.
+	빌드이벤트
+	CALL $(SolutionDir)Common\Protobuf\bin\GenPackets.bat
 #endif
