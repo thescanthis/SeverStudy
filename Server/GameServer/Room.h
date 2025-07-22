@@ -13,7 +13,7 @@ private:
 	void Broadcast(SendBufferRef sendBuffer);
 
 public:
-	//¸ÖÆ¼ ¾²·¹µå È¯°æ¿¡¼­´Â ÀÏ°¨À¸·Î Á¢±Ù
+	//ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¯ï¿½æ¿¡ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	void PushJob(JobRef job) { _jobs.Push(job); }
 	void FluhJob();
 

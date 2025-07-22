@@ -6,7 +6,7 @@
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
-// Á÷Á¢ ÄÁÅÙÃ÷ ÀÛ¾÷ÀÚ.
+// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½.
 
 bool Handle_INVALID(PacketSessionRef& session, BYTE* buffer, int32 len)
 {
@@ -23,15 +23,15 @@ bool Handle_C_LOGIN(PacketSessionRef& session, Protocol::C_LOGIN& pkt)
 	Protocol::S_LOGIN loginPkt;
 	loginPkt.set_success(true);
 
-	//DB¿¡¼­ ÇÃ·¹ÀÌ¾î Á¤º¸¸¦ ±Ü¾î ¿Í¾ßÇÔ
-	//GameSession¿¡ ÇÃ·¹ÀÌ¾î Á¤º¸¸¦ ÀúÀå(¸Þ¸ð¸®)
+	//DBï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ü¾ï¿½ ï¿½Í¾ï¿½ï¿½ï¿½
+	//GameSessionï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Þ¸ï¿½)
 
-	//ID ¹ß±Þ(DB ¾ÆÀÌµð°¡ ¾Æ´Ï°í ÀÎ°ÔÀÓ ¾ÆÀÌµð)
+	//ID ï¿½ß±ï¿½(DB ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Æ´Ï°ï¿½ ï¿½Î°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½)
 	static Atomic<uint64> idGenerator = 1;
 
 	{
 		auto player = loginPkt.add_players();
-		player->set_name(u8"DB¿¡¼­ ±Ü¾î¿Â ÀÌ¸§1");
+		player->set_name(u8"DBï¿½ï¿½ï¿½ï¿½ ï¿½Ü¾ï¿½ï¿½ ï¿½Ì¸ï¿½1");
 		player->set_playertype(Protocol::PLAYER_TYPE_KNIGHT);
 
 		PlayerRef playerRef = MakeShared<Player>();
@@ -44,7 +44,7 @@ bool Handle_C_LOGIN(PacketSessionRef& session, Protocol::C_LOGIN& pkt)
 
 	{
 		auto player = loginPkt.add_players();
-		player->set_name(u8"DB¿¡¼­ ±Ü¾î¿Â ÀÌ¸§2");
+		player->set_name(u8"DBï¿½ï¿½ï¿½ï¿½ ï¿½Ü¾ï¿½ï¿½ ï¿½Ì¸ï¿½2");
 		player->set_playertype(Protocol::PLAYER_TYPE_MAGE);
 
 		PlayerRef playerRef = MakeShared<Player>();
