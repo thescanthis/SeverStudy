@@ -38,33 +38,5 @@ int main()
 	WCHAR sendData2[1000] = L"가";// UTF16 = Unicode(한글2바이트),(로마2바이트) 
 	TCHAR sendData3[1000] = L"가"; // tchar.h(속성에따라 달라지는 데이터셋)
 
-	while (true)
-	{
-		Protocol::S_TEST pkt;
-		pkt.set_id(1000);
-		pkt.set_hp(100);
-		pkt.set_attack(10);
-
-		{
-			Protocol::BuffData* data = pkt.add_buffs();
-			data->set_buffid(100);
-			data->set_remaintime(1.2f);
-			data->add_victims(4000);
-		}
-
-		{
-			Protocol::BuffData* data = pkt.add_buffs();
-			data->set_buffid(200);
-			data->set_remaintime(2.2f);
-			data->add_victims(1000);
-			data->add_victims(2000);
-		}
-
-		 SendBufferRef sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
-		 GSessionManager.Broadcast(sendBuffer);
-
-		std::this_thread::sleep_for(250ms);
-	}
-
 	GThreadManager->Join();
 }

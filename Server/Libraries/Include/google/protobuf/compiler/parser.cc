@@ -97,19 +97,19 @@ std::string MapEntryName(const std::string& field_name) {
   static const char kSuffix[] = "Entry";
   result.reserve(field_name.size() + sizeof(kSuffix));
   bool cap_next = true;
-  for (const char field_name_char : field_name) {
-    if (field_name_char == '_') {
+  for (int i = 0; i < field_name.size(); ++i) {
+    if (field_name[i] == '_') {
       cap_next = true;
     } else if (cap_next) {
       // Note: Do not use ctype.h due to locales.
-      if ('a' <= field_name_char && field_name_char <= 'z') {
-        result.push_back(field_name_char - 'a' + 'A');
+      if ('a' <= field_name[i] && field_name[i] <= 'z') {
+        result.push_back(field_name[i] - 'a' + 'A');
       } else {
-        result.push_back(field_name_char);
+        result.push_back(field_name[i]);
       }
       cap_next = false;
     } else {
-      result.push_back(field_name_char);
+      result.push_back(field_name[i]);
     }
   }
   result.append(kSuffix);
@@ -131,8 +131,8 @@ bool IsUpperCamelCase(const std::string& name) {
     return false;
   }
   // Must not contains underscore.
-  for (const char c : name) {
-    if (c == '_') {
+  for (int i = 1; i < name.length(); i++) {
+    if (name[i] == '_') {
       return false;
     }
   }
@@ -140,7 +140,8 @@ bool IsUpperCamelCase(const std::string& name) {
 }
 
 bool IsUpperUnderscore(const std::string& name) {
-  for (const char c : name) {
+  for (int i = 0; i < name.length(); i++) {
+    const char c = name[i];
     if (!IsUppercase(c) && c != '_' && !IsNumber(c)) {
       return false;
     }
@@ -149,7 +150,8 @@ bool IsUpperUnderscore(const std::string& name) {
 }
 
 bool IsLowerUnderscore(const std::string& name) {
-  for (const char c : name) {
+  for (int i = 0; i < name.length(); i++) {
+    const char c = name[i];
     if (!IsLowercase(c) && c != '_' && !IsNumber(c)) {
       return false;
     }
@@ -1518,13 +1520,6 @@ bool Parser::ParseOption(Message* options,
         AddError("Unexpected end of stream while parsing option value.");
         return false;
 
-      case io::Tokenizer::TYPE_WHITESPACE:
-      case io::Tokenizer::TYPE_NEWLINE:
-        GOOGLE_CHECK(!input_->report_whitespace() && !input_->report_newlines())
-            << "Whitespace tokens were not requested.";
-        GOOGLE_LOG(FATAL) << "Tokenizer reported whitespace.";
-        return false;
-
       case io::Tokenizer::TYPE_IDENTIFIER: {
         value_location.AddPath(
             UninterpretedOption::kIdentifierValueFieldNumber);
@@ -1549,7 +1544,7 @@ bool Parser::ParseOption(Message* options,
           value_location.AddPath(
               UninterpretedOption::kNegativeIntValueFieldNumber);
           uninterpreted_option->set_negative_int_value(
-              static_cast<int64_t>(0 - value));
+              static_cast<int64_t>(-value));
         } else {
           value_location.AddPath(
               UninterpretedOption::kPositiveIntValueFieldNumber);

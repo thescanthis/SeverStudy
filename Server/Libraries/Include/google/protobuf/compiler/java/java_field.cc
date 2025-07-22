@@ -185,7 +185,7 @@ static inline void ReportUnexpectedPackedFieldsCall(io::Printer* printer) {
   //     but this method should be overridden.
   //   - This FieldGenerator doesn't support packing, and this method
   //     should never have been called.
-  GOOGLE_LOG(FATAL) << "GenerateBuilderParsingCodeFromPacked() "
+  GOOGLE_LOG(FATAL) << "GenerateParsingCodeFromPacked() "
              << "called on field generator that does not support packing.";
 }
 
@@ -193,7 +193,7 @@ static inline void ReportUnexpectedPackedFieldsCall(io::Printer* printer) {
 
 ImmutableFieldGenerator::~ImmutableFieldGenerator() {}
 
-void ImmutableFieldGenerator::GenerateBuilderParsingCodeFromPacked(
+void ImmutableFieldGenerator::GenerateParsingCodeFromPacked(
     io::Printer* printer) const {
   ReportUnexpectedPackedFieldsCall(printer);
 }
@@ -263,20 +263,6 @@ void SetCommonFieldVariables(const FieldDescriptor* descriptor,
   (*variables)["kt_capitalized_name"] = IsForbiddenKotlin(info->name)
                                             ? info->capitalized_name + "_"
                                             : info->capitalized_name;
-  if (!descriptor->is_repeated()) {
-    (*variables)["annotation_field_type"] = FieldTypeName(descriptor->type());
-  } else if (GetJavaType(descriptor) == JAVATYPE_MESSAGE &&
-             IsMapEntry(descriptor->message_type())) {
-    (*variables)["annotation_field_type"] =
-        std::string(FieldTypeName(descriptor->type())) + "MAP";
-  } else {
-    (*variables)["annotation_field_type"] =
-        std::string(FieldTypeName(descriptor->type())) + "_LIST";
-    if (descriptor->is_packed()) {
-      (*variables)["annotation_field_type"] =
-          (*variables)["annotation_field_type"] + "_PACKED";
-    }
-  }
 }
 
 void SetCommonOneofVariables(const FieldDescriptor* descriptor,

@@ -20,7 +20,7 @@ void GameSession::OnRecvPacket(BYTE* buffer, int32 len)
 
 	//TODO PacketId 대역체크 나아아중에
 
-	ClientPacketHandler::HandlePacket(session,buffer, len);
+	ClientPacketHandler::HandlePacket(session, buffer, len);
 }
 
 void GameSession::OnSend(int32 len)

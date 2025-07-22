@@ -54,8 +54,6 @@ namespace internal {
 template <typename T>
 class ExplicitlyConstructed;
 
-class SwapFieldHelper;
-
 // Lazy string instance to support string fields with non-empty default.
 // These are initialized on the first call to .get().
 class PROTOBUF_EXPORT LazyString {
@@ -142,7 +140,7 @@ static_assert(std::is_trivial<TaggedPtr<std::string>>::value,
 //   free()/destructor-call list) as appropriate.
 //
 // - Pointer set to 'DonatedString' tag (LSB is 1): points to a std::string
-//   instance with a buffer on the arena (arena is never nullptr in this case).
+//   instance with a buffer on the arena (arena != NULL, always, in this case).
 //
 // For fields with a non-empty string default value, there are three distinct
 // states:
@@ -158,7 +156,7 @@ static_assert(std::is_trivial<TaggedPtr<std::string>>::value,
 //   free()/destructor-call list) as appropriate.
 //
 // - Pointer set to 'DonatedString' tag (LSB is 1): points to a std::string
-//   instance with a buffer on the arena (arena is never nullptr in this case).
+//   instance with a buffer on the arena (arena != NULL, always, in this case).
 //
 // Generated code and reflection code both ensure that ptr_ is never null for
 // fields with an empty default.
@@ -240,12 +238,12 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   std::string* Mutable(const LazyString& default_value, ::google::protobuf::Arena* arena);
 
   // Release returns a std::string* instance that is heap-allocated and is not
-  // Own()'d by any arena. If the field is not set, this returns nullptr. The
-  // caller retains ownership. Clears this field back to nullptr state. Used to
+  // Own()'d by any arena. If the field is not set, this returns NULL. The
+  // caller retains ownership. Clears this field back to NULL state. Used to
   // implement release_<field>() methods on generated classes.
-  PROTOBUF_NODISCARD std::string* Release(const std::string* default_value,
-                                          ::google::protobuf::Arena* arena);
-  PROTOBUF_NODISCARD std::string* ReleaseNonDefault(
+  PROTOBUF_FUTURE_MUST_USE_RESULT std::string* Release(
+      const std::string* default_value, ::google::protobuf::Arena* arena);
+  PROTOBUF_FUTURE_MUST_USE_RESULT std::string* ReleaseNonDefault(
       const std::string* default_value, ::google::protobuf::Arena* arena);
 
   // Takes a std::string that is heap-allocated, and takes ownership. The
@@ -276,9 +274,9 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
   // string default.
   void ClearNonDefaultToEmpty();
 
-  // Clears content, but keeps allocated std::string if arena != nullptr, to
-  // avoid the overhead of heap operations. After this returns, the content
-  // (as seen by the user) will always be equal to |default_value|.
+  // Clears content, but keeps allocated std::string if arena != NULL, to avoid
+  // the overhead of heap operations. After this returns, the content (as seen
+  // by the user) will always be equal to |default_value|.
   void ClearToDefault(const LazyString& default_value, ::google::protobuf::Arena* arena);
 
   // Called from generated code / reflection runtime only. Resets value to point
@@ -324,15 +322,6 @@ struct PROTOBUF_EXPORT ArenaStringPtr {
 
   bool IsDonatedString() const { return false; }
 
-  // Swaps tagged pointer without debug hardening. This is to allow python
-  // protobuf to maintain pointer stability even in DEBUG builds.
-  inline PROTOBUF_NDEBUG_INLINE static void UnsafeShallowSwap(
-      ArenaStringPtr* rhs, ArenaStringPtr* lhs) {
-    std::swap(lhs->tagged_ptr_, rhs->tagged_ptr_);
-  }
-
-  friend class ::google::protobuf::internal::SwapFieldHelper;
-
   // Slow paths.
 
   // MutableSlow requires that !IsString() || IsDefault
@@ -352,17 +341,15 @@ inline void ArenaStringPtr::UnsafeSetDefault(const std::string* value) {
   tagged_ptr_.Set(const_cast<std::string*>(value));
 }
 
-// Make sure rhs_arena allocated rhs, and lhs_arena allocated lhs.
 inline PROTOBUF_NDEBUG_INLINE void ArenaStringPtr::InternalSwap(  //
     const std::string* default_value,                             //
     ArenaStringPtr* rhs, Arena* rhs_arena,                        //
     ArenaStringPtr* lhs, Arena* lhs_arena) {
-  // Silence unused variable warnings in release buildls.
   (void)default_value;
-  (void)rhs_arena;
-  (void)lhs_arena;
+  std::swap(lhs_arena, rhs_arena);
   std::swap(lhs->tagged_ptr_, rhs->tagged_ptr_);
-#ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+#if 0  // TODO(b/186650244): renable this
+#ifndef NDEBUG
   auto force_realloc = [default_value](ArenaStringPtr* p, Arena* arena) {
     if (p->IsDefault(default_value)) return;
     std::string* old_value = p->tagged_ptr_.Get();
@@ -373,11 +360,10 @@ inline PROTOBUF_NDEBUG_INLINE void ArenaStringPtr::InternalSwap(  //
     if (arena == nullptr) delete old_value;
     p->tagged_ptr_.Set(new_value);
   };
-  // Because, at this point, tagged_ptr_ has been swapped, arena should also be
-  // swapped.
-  force_realloc(lhs, rhs_arena);
-  force_realloc(rhs, lhs_arena);
-#endif  // PROTOBUF_FORCE_COPY_IN_SWAP
+  force_realloc(lhs, lhs_arena);
+  force_realloc(rhs, rhs_arena);
+#endif
+#endif
 }
 
 inline void ArenaStringPtr::ClearNonDefaultToEmpty() {
