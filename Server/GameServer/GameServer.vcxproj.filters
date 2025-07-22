@@ -10,6 +10,9 @@
     <Filter Include="Protocol">
       <UniqueIdentifier>{40d5d9dc-e6f2-487e-b76a-b3b2647a39fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameContents">
+      <UniqueIdentifier>{1b085df7-c589-4bf0-ba47-742984e1e2a4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -24,7 +27,7 @@
     <ClCompile Include="GameSessionManager.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ServerPacketHandler.cpp">
+    <ClCompile Include="ClientPacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="Protocol.pb.cc">
@@ -35,6 +38,15 @@
     </ClCompile>
     <ClCompile Include="Enum.pb.cc">
       <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>GameContents</Filter>
+    </ClCompile>
+    <ClCompile Include="Room.cpp">
+      <Filter>GameContents</Filter>
+    </ClCompile>
+    <ClCompile Include="Job.cpp">
+      <Filter>GameContents</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,7 +59,7 @@
     <ClInclude Include="GameSessionManager.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="ServerPacketHandler.h">
+    <ClInclude Include="ClientPacketHandler.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="Protocol.pb.h">
@@ -58,6 +70,15 @@
     </ClInclude>
     <ClInclude Include="Enum.pb.h">
       <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>GameContents</Filter>
+    </ClInclude>
+    <ClInclude Include="Room.h">
+      <Filter>GameContents</Filter>
+    </ClInclude>
+    <ClInclude Include="Job.h">
+      <Filter>GameContents</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

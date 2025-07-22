@@ -4,15 +4,17 @@
 using PacketHandlerFunc = std::function<bool(PacketSessionRef&, BYTE*, int32)>;
 extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
-//TODO
 enum :uint16
 {
+	//TODO
 	PKT_S_TEST = 1,
 	PKT_S_LOGIN = 2,
 };
 
 //Custom Handler
 bool Handle_INVALID(PacketSessionRef& session, BYTE* buffer, int32 len);
+
+//TODO
 bool Handle_S_TEST(PacketSessionRef& session, Protocol::S_TEST& pkt);
 
 class ServerPacketHandler

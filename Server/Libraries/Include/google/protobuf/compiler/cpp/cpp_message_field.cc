@@ -87,9 +87,7 @@ MessageFieldGenerator::MessageFieldGenerator(const FieldDescriptor* descriptor,
                                              MessageSCCAnalyzer* scc_analyzer)
     : FieldGenerator(descriptor, options),
       implicit_weak_field_(
-          IsImplicitWeakField(descriptor, options, scc_analyzer)),
-      has_required_fields_(
-          scc_analyzer->HasRequiredFields(descriptor->message_type())) {
+          IsImplicitWeakField(descriptor, options, scc_analyzer)) {
   SetMessageVariables(descriptor, options, implicit_weak_field_, &variables_);
 }
 
@@ -111,7 +109,7 @@ void MessageFieldGenerator::GenerateAccessorDeclarations(
     format(
         "$deprecated_attr$const $type$& ${1$$name$$}$() const { "
         "__builtin_trap(); }\n"
-        "PROTOBUF_NODISCARD $deprecated_attr$$type$* "
+        "PROTOBUF_FUTURE_MUST_USE_RESULT $deprecated_attr$$type$* "
         "${1$$release_name$$}$() { "
         "__builtin_trap(); }\n"
         "$deprecated_attr$$type$* ${1$mutable_$name$$}$() { "
@@ -128,7 +126,7 @@ void MessageFieldGenerator::GenerateAccessorDeclarations(
   }
   format(
       "$deprecated_attr$const $type$& ${1$$name$$}$() const;\n"
-      "PROTOBUF_NODISCARD $deprecated_attr$$type$* "
+      "PROTOBUF_FUTURE_MUST_USE_RESULT $deprecated_attr$$type$* "
       "${1$$release_name$$}$();\n"
       "$deprecated_attr$$type$* ${1$mutable_$name$$}$();\n"
       "$deprecated_attr$void ${1$set_allocated_$name$$}$"
@@ -165,7 +163,7 @@ void MessageFieldGenerator::GenerateInlineAccessorDefinitions(
       "      $type_default_instance$);\n"
       "}\n"
       "inline const $type$& $classname$::$name$() const {\n"
-      "$annotate_get$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_get:$full_name$)\n"
       "  return _internal_$name$();\n"
       "}\n");
@@ -173,6 +171,7 @@ void MessageFieldGenerator::GenerateInlineAccessorDefinitions(
   format(
       "inline void $classname$::unsafe_arena_set_allocated_$name$(\n"
       "    $type$* $name$) {\n"
+      "$annotate_accessor$"
       // If we're not on an arena, free whatever we were holding before.
       // (If we are on arena, we can just forget the earlier pointer.)
       "  if (GetArenaForAllocation() == nullptr) {\n"
@@ -191,30 +190,22 @@ void MessageFieldGenerator::GenerateInlineAccessorDefinitions(
       "  } else {\n"
       "    $clear_hasbit$\n"
       "  }\n"
-      "$annotate_set$"
       "  // @@protoc_insertion_point(field_unsafe_arena_set_allocated"
       ":$full_name$)\n"
       "}\n");
   format(
       "inline $type$* $classname$::$release_name$() {\n"
       "$type_reference_function$"
-      "$annotate_release$"
       "  $clear_hasbit$\n"
       "  $type$* temp = $casted_member$;\n"
       "  $name$_ = nullptr;\n"
-      "#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE\n"
-      "  auto* old =  reinterpret_cast<::$proto_ns$::MessageLite*>(temp);\n"
-      "  temp = ::$proto_ns$::internal::DuplicateIfNonNull(temp);\n"
-      "  if (GetArenaForAllocation() == nullptr) { delete old; }\n"
-      "#else  // PROTOBUF_FORCE_COPY_IN_RELEASE\n"
       "  if (GetArenaForAllocation() != nullptr) {\n"
       "    temp = ::$proto_ns$::internal::DuplicateIfNonNull(temp);\n"
       "  }\n"
-      "#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE\n"
       "  return temp;\n"
       "}\n"
       "inline $type$* $classname$::unsafe_arena_release_$name$() {\n"
-      "$annotate_release$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_release:$full_name$)\n"
       "$type_reference_function$"
       "  $clear_hasbit$\n"
@@ -239,16 +230,16 @@ void MessageFieldGenerator::GenerateInlineAccessorDefinitions(
       "  return $casted_member$;\n"
       "}\n"
       "inline $type$* $classname$::mutable_$name$() {\n"
-      "  $type$* _msg = _internal_mutable_$name$();\n"
-      "$annotate_mutable$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_mutable:$full_name$)\n"
-      "  return _msg;\n"
+      "  return _internal_mutable_$name$();\n"
       "}\n");
 
   // We handle the most common case inline, and delegate less common cases to
   // the slow fallback function.
   format(
       "inline void $classname$::set_allocated_$name$($type$* $name$) {\n"
+      "$annotate_accessor$"
       "  ::$proto_ns$::Arena* message_arena = GetArenaForAllocation();\n");
   format("  if (message_arena == nullptr) {\n");
   if (IsCrossFileMessage(descriptor_)) {
@@ -290,7 +281,6 @@ void MessageFieldGenerator::GenerateInlineAccessorDefinitions(
     format("  $name$_ = $name$;\n");
   }
   format(
-      "$annotate_set$"
       "  // @@protoc_insertion_point(field_set_allocated:$full_name$)\n"
       "}\n");
 }
@@ -482,18 +472,6 @@ void MessageFieldGenerator::GenerateByteSize(io::Printer* printer) const {
       "    *$field_member$);\n");
 }
 
-void MessageFieldGenerator::GenerateIsInitialized(io::Printer* printer) const {
-  GOOGLE_CHECK(!IsFieldStripped(descriptor_, options_));
-
-  if (!has_required_fields_) return;
-
-  Formatter format(printer, variables_);
-  format(
-      "if (_internal_has_$name$()) {\n"
-      "  if (!$name$_->IsInitialized()) return false;\n"
-      "}\n");
-}
-
 void MessageFieldGenerator::GenerateConstinitInitializer(
     io::Printer* printer) const {
   Formatter format(printer, variables_);
@@ -516,6 +494,7 @@ void MessageOneofFieldGenerator::GenerateNonInlineAccessorDefinitions(
   Formatter format(printer, variables_);
   format(
       "void $classname$::set_allocated_$name$($type$* $name$) {\n"
+      "$annotate_accessor$"
       "  ::$proto_ns$::Arena* message_arena = GetArenaForAllocation();\n"
       "  clear_$oneof_name$();\n"
       "  if ($name$) {\n");
@@ -542,7 +521,6 @@ void MessageOneofFieldGenerator::GenerateNonInlineAccessorDefinitions(
       "    set_has_$name$();\n"
       "    $field_member$ = $name$;\n"
       "  }\n"
-      "$annotate_set$"
       "  // @@protoc_insertion_point(field_set_allocated:$full_name$)\n"
       "}\n");
 }
@@ -552,7 +530,7 @@ void MessageOneofFieldGenerator::GenerateInlineAccessorDefinitions(
   Formatter format(printer, variables_);
   format(
       "inline $type$* $classname$::$release_name$() {\n"
-      "$annotate_release$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_release:$full_name$)\n"
       "  if (_internal_has_$name$()) {\n"
       "    clear_has_$oneof_name$();\n"
@@ -574,12 +552,12 @@ void MessageOneofFieldGenerator::GenerateInlineAccessorDefinitions(
       "      : reinterpret_cast< $type$&>($type_default_instance$);\n"
       "}\n"
       "inline const $type$& $classname$::$name$() const {\n"
-      "$annotate_get$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_get:$full_name$)\n"
       "  return _internal_$name$();\n"
       "}\n"
       "inline $type$* $classname$::unsafe_arena_release_$name$() {\n"
-      "$annotate_release$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_unsafe_arena_release"
       ":$full_name$)\n"
       "  if (_internal_has_$name$()) {\n"
@@ -593,6 +571,7 @@ void MessageOneofFieldGenerator::GenerateInlineAccessorDefinitions(
       "}\n"
       "inline void $classname$::unsafe_arena_set_allocated_$name$"
       "($type$* $name$) {\n"
+      "$annotate_accessor$"
       // We rely on the oneof clear method to free the earlier contents of
       // this oneof. We can directly use the pointer we're given to set the
       // new value.
@@ -601,7 +580,6 @@ void MessageOneofFieldGenerator::GenerateInlineAccessorDefinitions(
       "    set_has_$name$();\n"
       "    $field_member$ = $name$;\n"
       "  }\n"
-      "$annotate_set$"
       "  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:"
       "$full_name$)\n"
       "}\n"
@@ -615,10 +593,9 @@ void MessageOneofFieldGenerator::GenerateInlineAccessorDefinitions(
       "  return $field_member$;\n"
       "}\n"
       "inline $type$* $classname$::mutable_$name$() {\n"
-      "  $type$* _msg = _internal_mutable_$name$();\n"
-      "$annotate_mutable$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_mutable:$full_name$)\n"
-      "  return _msg;\n"
+      "  return _internal_mutable_$name$();\n"
       "}\n");
 }
 
@@ -655,17 +632,6 @@ void MessageOneofFieldGenerator::GenerateConstructorCode(
   // space only when this field is used.
 }
 
-void MessageOneofFieldGenerator::GenerateIsInitialized(
-    io::Printer* printer) const {
-  if (!has_required_fields_) return;
-
-  Formatter format(printer, variables_);
-  format(
-      "if (_internal_has_$name$()) {\n"
-      "  if (!$field_member$->IsInitialized()) return false;\n"
-      "}\n");
-}
-
 // ===================================================================
 
 RepeatedMessageFieldGenerator::RepeatedMessageFieldGenerator(
@@ -673,9 +639,7 @@ RepeatedMessageFieldGenerator::RepeatedMessageFieldGenerator(
     MessageSCCAnalyzer* scc_analyzer)
     : FieldGenerator(descriptor, options),
       implicit_weak_field_(
-          IsImplicitWeakField(descriptor, options, scc_analyzer)),
-      has_required_fields_(
-          scc_analyzer->HasRequiredFields(descriptor->message_type())) {
+          IsImplicitWeakField(descriptor, options, scc_analyzer)) {
   SetMessageVariables(descriptor, options, implicit_weak_field_, &variables_);
 }
 
@@ -737,7 +701,7 @@ void RepeatedMessageFieldGenerator::GenerateInlineAccessorDefinitions(
 
   format(
       "inline $type$* $classname$::mutable_$name$(int index) {\n"
-      "$annotate_mutable$"
+      "$annotate_accessor$"
       // TODO(dlj): move insertion points
       "  // @@protoc_insertion_point(field_mutable:$full_name$)\n"
       "$type_reference_function$"
@@ -745,7 +709,7 @@ void RepeatedMessageFieldGenerator::GenerateInlineAccessorDefinitions(
       "}\n"
       "inline ::$proto_ns$::RepeatedPtrField< $type$ >*\n"
       "$classname$::mutable_$name$() {\n"
-      "$annotate_mutable_list$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_mutable_list:$full_name$)\n"
       "$type_reference_function$"
       "  return &$name$_$weak$;\n"
@@ -769,7 +733,7 @@ void RepeatedMessageFieldGenerator::GenerateInlineAccessorDefinitions(
 
   format(
       "inline const $type$& $classname$::$name$(int index) const {\n"
-      "$annotate_get$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_get:$full_name$)\n"
       "  return _internal_$name$(index);\n"
       "}\n"
@@ -777,16 +741,15 @@ void RepeatedMessageFieldGenerator::GenerateInlineAccessorDefinitions(
       "  return $name$_$weak$.Add();\n"
       "}\n"
       "inline $type$* $classname$::add_$name$() {\n"
-      "  $type$* _add = _internal_add_$name$();\n"
-      "$annotate_add_mutable$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_add:$full_name$)\n"
-      "  return _add;\n"
+      "  return _internal_add_$name$();\n"
       "}\n");
 
   format(
       "inline const ::$proto_ns$::RepeatedPtrField< $type$ >&\n"
       "$classname$::$name$() const {\n"
-      "$annotate_list$"
+      "$annotate_accessor$"
       "  // @@protoc_insertion_point(field_list:$full_name$)\n"
       "$type_reference_function$"
       "  return $name$_$weak$;\n"
@@ -860,24 +823,6 @@ void RepeatedMessageFieldGenerator::GenerateByteSize(
       "  total_size +=\n"
       "    ::$proto_ns$::internal::WireFormatLite::$declared_type$Size(msg);\n"
       "}\n");
-}
-
-void RepeatedMessageFieldGenerator::GenerateIsInitialized(
-    io::Printer* printer) const {
-  GOOGLE_CHECK(!IsFieldStripped(descriptor_, options_));
-
-  if (!has_required_fields_) return;
-
-  Formatter format(printer, variables_);
-  if (implicit_weak_field_) {
-    format(
-        "if (!::$proto_ns$::internal::AllAreInitializedWeak($name$_.weak))\n"
-        "  return false;\n");
-  } else {
-    format(
-        "if (!::$proto_ns$::internal::AllAreInitialized($name$_))\n"
-        "  return false;\n");
-  }
 }
 
 void RepeatedMessageFieldGenerator::GenerateConstinitInitializer(

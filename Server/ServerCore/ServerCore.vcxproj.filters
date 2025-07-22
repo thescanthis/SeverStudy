@@ -13,6 +13,9 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{3dd15ca7-5c0b-4707-b0b5-76516535ef03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{6bd347af-180c-415e-acdc-90d4fab0805b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ThreadManager.h">
@@ -90,11 +93,11 @@
     <ClInclude Include="Types.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="BufferReader.h">
-      <Filter>Network</Filter>
-    </ClInclude>
     <ClInclude Include="BufferWriter.h">
-      <Filter>Network</Filter>
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferReader.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -162,10 +165,10 @@
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="BufferReader.cpp">
-      <Filter>Network</Filter>
+      <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="BufferWriter.cpp">
-      <Filter>Network</Filter>
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
