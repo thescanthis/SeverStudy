@@ -11,13 +11,27 @@
 
 #include "Job.h"
 #include "Room.h"
+#include "Player.h"
 #include <functional>
 
-void HealByValue(int64 target, int32 value)
+enum
 {
-	cout << target << "한테 힐" << value << "만큼 줌" << '\n';
-}
+	WORKER_TICK = 64
+};
 
+void DoWorkerJob(ServerServiceRef& service)
+{
+	while (true)
+	{
+		LEndTickCount = ::GetTickCount64() + WORKER_TICK;
+
+		// 네트워크 입출력 처리 -> 인게임 로직까지 (패킷 핸들러에 의해)
+		service->GetIocpCore()->Dispatch(10);
+
+		//글로벌 큐
+		ThreadManager::DoGlobalQueueWork();
+	}
+}
 int main()
 {
 
@@ -34,14 +48,12 @@ int main()
 
 	for (int32 i = 0; i < 5; i++)
 	{
-		GThreadManager->Launch([=]()
+		GThreadManager->Launch([&service]()
 			{
-				while (true)
-				{
-					service->GetIocpCore()->Dispatch();
-				}
+				DoWorkerJob(service);
 			});
 	}
 
+	DoWorkerJob(service);
 	GThreadManager->Join();
 }
