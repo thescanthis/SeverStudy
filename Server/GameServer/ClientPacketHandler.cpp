@@ -6,8 +6,6 @@
 
 PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
-// ���� ������ �۾���.
-
 bool Handle_INVALID(PacketSessionRef& session, BYTE* buffer, int32 len)
 {
 	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
@@ -23,15 +21,11 @@ bool Handle_C_LOGIN(PacketSessionRef& session, Protocol::C_LOGIN& pkt)
 	Protocol::S_LOGIN loginPkt;
 	loginPkt.set_success(true);
 
-	//DB���� �÷��̾� ������ �ܾ� �;���
-	//GameSession�� �÷��̾� ������ ����(�޸�)
-
-	//ID �߱�(DB ���̵� �ƴϰ� �ΰ��� ���̵�)
 	static Atomic<uint64> idGenerator = 1;
 
 	{
 		auto player = loginPkt.add_players();
-		player->set_name(u8"DB���� �ܾ�� �̸�1");
+		player->set_name(u8"DB에서 긁어온이름1");
 		player->set_playertype(Protocol::PLAYER_TYPE_KNIGHT);
 
 		PlayerRef playerRef = MakeShared<Player>();
@@ -43,8 +37,9 @@ bool Handle_C_LOGIN(PacketSessionRef& session, Protocol::C_LOGIN& pkt)
 	}
 
 	{
+		//에서 긁어온이름
 		auto player = loginPkt.add_players();
-		player->set_name(u8"DB���� �ܾ�� �̸�2");
+		player->set_name(u8"DB에서 긁어온이름2");
 		player->set_playertype(Protocol::PLAYER_TYPE_MAGE);
 
 		PlayerRef playerRef = MakeShared<Player>();
@@ -68,12 +63,13 @@ bool Handle_C_ENTER_GAME(PacketSessionRef& session, Protocol::C_ENTER_GAME& pkt)
 	uint64 index = pkt.playerindex();
 	//TODO : Validation
 
-	PlayerRef player = gameSession->_players[index]; // READ_ONLY
-	GRoom->DoAsync(&Room::Enter, player);
+	gameSession->_currentPlayer = gameSession->_players[index]; // READ_ONLY
+	gameSession->_room = GRoom;
+	GRoom->DoAsync(&Room::Enter, gameSession->_currentPlayer);
 
 	Protocol::S_ENTER_GAME enterGamePkt;
 	auto sendBuffer = ClientPacketHandler::MakeSendBuffer(enterGamePkt);
-	player->ownerSession->Send(sendBuffer);
+	gameSession->_currentPlayer->ownerSession->Send(sendBuffer);
 
 
 	return true;
