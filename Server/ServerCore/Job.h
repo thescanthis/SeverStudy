@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include "JobQueue.h"
 
 /*-------------
 	  Job
@@ -12,7 +13,7 @@ class Job
 public:
 	Job(CallbackType&& callback) : _callback(std::move(callback))
 	{
-
+		
 	}
 
 	template<typename T,typename Ret,typename... Args>
@@ -28,6 +29,7 @@ public:
 	{
 		_callback();
 	}
+
 private:
 	CallbackType _callback;
 };
