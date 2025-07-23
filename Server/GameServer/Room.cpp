@@ -3,7 +3,7 @@
 #include "Player.h"
 #include "GameSession.h"
 
-Room GRoom;
+std::shared_ptr<Room> GRoom =make_shared<Room>();
 
 void Room::Enter(PlayerRef player)
 {
@@ -23,14 +23,14 @@ void Room::Broadcast(SendBufferRef sendBuffer)
 	}
 }
 
-void Room::FluhJob()
+void Room::FlushJob()
 {
 	while (true)
 	{
-		JobRef job = _jobs.Pop();
+		JobRef job = _JobQueue.Pop();
 		if (job == nullptr)
 			break;
-
+		
 		job->Execute();
 	}
 }

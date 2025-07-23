@@ -85,3 +85,10 @@ Memory Model 정책
 	빌드이벤트
 	CALL $(SolutionDir)Common\Protobuf\bin\GenPackets.bat
 #endif
+
+#if 0 String
+	char sendData[1000] = "가"; // CP949 = KS-X-1001 (한글2바이트),(로마1바이트)
+	char sendData1[1000] = u8"가";// UTF8 = Unicode (한글3바이트),(로마1바이트)
+	WCHAR sendData2[1000] = L"가";// UTF16 = Unicode(한글2바이트),(로마2바이트) 
+	TCHAR sendData3[1000] = L"가"; // tchar.h(속성에따라 달라지는 데이터셋)
+#endif

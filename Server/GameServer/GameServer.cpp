@@ -11,34 +11,16 @@
 
 #include "Job.h"
 #include "Room.h"
+#include <functional>
 
 void HealByValue(int64 target, int32 value)
 {
 	cout << target << "한테 힐" << value << "만큼 줌" << '\n';
 }
 
-class K
-{
-public:
-	void HealMe(int32 n)
-	{
-		cout << "Healme!" << n << '\n';
-	}
-};
-
 int main()
 {
-#if 1
-	{
-		FuncJob<void, int64, int32> job(HealByValue,100,10);
-		job.Execute();
-	}
-	{
-		K k1;
-		MemberJob job2(&k1, &K::HealMe, 10);
-		job2.Execute();
-	}
-#endif
+
 
 	ClientPacketHandler::Init();
 
@@ -68,7 +50,7 @@ int main()
 
 	while (true)
 	{
-		GRoom.FluhJob();
+		GRoom->FlushJob();
 		this_thread::sleep_for(1ms);
 	}
 
