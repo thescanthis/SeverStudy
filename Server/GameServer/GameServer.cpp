@@ -14,6 +14,7 @@
 #include "Player.h"
 #include <functional>
 #include "DBConnectionPool.h"
+#include "DBBind.h"
 
 enum
 {
@@ -47,7 +48,9 @@ int main()
 			CREATE TABLE [dbo].[Gold]					\
 			(											\
 				[id] INT NOT NULL PRIMARY KEY IDENTITY,	\
-				[gold] INT NULL							\
+				[gold] INT NULL,						\
+				[name] NVARCHAR(50) NULL,				\
+				[createDate] DATETIME NULL				\
 			);";
 
 		DBConnection* dbConn = GDBConnectionPool->Pop();
@@ -61,46 +64,98 @@ int main()
 		{
 			DBConnection* dbConn = GDBConnectionPool->Pop();
 
+			DBBind<3, 0> dbBind(*dbConn, L"INSERT INTO [dbo].[Gold]([gold], [name], [createDate]) VALUES(?, ?, ?)");
+			
+			int32 gold = 100;
+			dbBind.BindParam(0, gold);
+			
+			WCHAR name[100] = L"루키스";
+			dbBind.BindParam(1, name);
+
+			TIMESTAMP_STRUCT ts = {2025,07,24};
+			dbBind.BindParam(2, ts);
+
+			ASSERT_CRASH(dbBind.Execute());
+			/*
 			dbConn->Unbind();
 
 			//넘길 인자 바인딩
 			int32 gold = 100;
 			SQLLEN len = 0;
 
-			ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
-				
+			WCHAR name[100] = L"루키스";
+			SQLLEN nameLen = 0;
+
+			TIMESTAMP_STRUCT ts = {};
+			ts.year = 2025;
+			ts.month = 7;
+			ts.day = 24;
+			SQLLEN tsLen = 0;
+
+			ASSERT_CRASH(dbConn->BindParam(1, &gold, &len));
+			ASSERT_CRASH(dbConn->BindParam(2, name, &nameLen));
+			ASSERT_CRASH(dbConn->BindParam(3, &ts, &len));
+
+			ASSERT_CRASH(dbConn->Execute(L"INSERT INTO [dbo].[Gold]([gold], [name], [createDate]) VALUES(?, ?, ?)"));
+			*/
 
 
-			ASSERT_CRASH(dbConn->Execute(L"INSERT INTO [dbo].[Gold]([gold]) VALUES(?)"));
 			GDBConnectionPool->Push(dbConn);
+			
 		}
 	}
 
 	{
 		//Read
 		DBConnection* dbConn = GDBConnectionPool->Pop();
+
+		DBBind<1, 4> dbBind(*dbConn, L"SELECT id, gold, name, createDate FROM [dbo].[Gold] WHERE gold= (?)");
+
+		int32 gold = 100;
+		dbBind.BindParam(0, OUT gold);
+		int32 outId = 0;
+		int32 outGold = 0;
+		WCHAR outName[100];
+		TIMESTAMP_STRUCT outDate = {};
+
+		dbBind.BindCol(0, OUT outId);
+		dbBind.BindCol(1, OUT outGold);
+		dbBind.BindCol(2, OUT outName);
+		dbBind.BindCol(3, OUT outDate);
+
+		ASSERT_CRASH(dbBind.Execute());
+		/*
 		dbConn->Unbind();
 
 		int32 gold = 100;
 		SQLLEN len = 0;
 
-		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+		ASSERT_CRASH(dbConn->BindParam(1, &gold, &len));
 
 		int32 outId = 0;
 		SQLLEN outIdLen = 0;
-
-		dbConn->BindCol(1, SQL_C_LONG, sizeof(outId), &outId, &outIdLen);
+		dbConn->BindCol(1, &outId, &outIdLen);
 
 		int32 outGold = 0;
 		SQLLEN outGoldLen = 0;
+		dbConn->BindCol(2, &outGold, &outGoldLen);
 
-		dbConn->BindCol(2, SQL_C_LONG, sizeof(outGold), &outGold, &outGoldLen);
+		WCHAR outName[100];
+		SQLLEN outNameLen = 0;
+		ASSERT_CRASH(dbConn->BindCol(3, outName, len32(outName), &outNameLen));
 
-		ASSERT_CRASH(dbConn->Execute(L"SELECT id, gold FROM [dbo].[Gold] WHERE gold= (?)"));
-	
+		TIMESTAMP_STRUCT outDate = {};
+		SQLLEN outDateLen = 0;
+		ASSERT_CRASH(dbConn->BindCol(4, &outDate, &outDateLen));
+
+		ASSERT_CRASH(dbConn->Execute(L"SELECT id, gold, name, createDate FROM [dbo].[Gold] WHERE gold= (?)"));
+		*/
+
+		wcout.imbue(locale("kor"));
 		while (dbConn->Fetch())
 		{
-			cout << "Id" << outId << ", Gold:" << outGold << '\n';
+			wcout << "Id" << outId << ", Gold:" << outGold <<", Name:"<<outName<< '\n';
+			wcout << "Data: " << outDate.year <<"." << outDate.month <<"." << outDate.day << '\n';
 		}
 		GDBConnectionPool->Push(dbConn);
 	}
