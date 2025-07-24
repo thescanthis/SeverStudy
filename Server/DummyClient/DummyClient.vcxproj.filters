@@ -8,7 +8,7 @@
       <UniqueIdentifier>{f3441ef4-da79-4b9b-b75f-dd8468ecefe6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Protocol">
-      <UniqueIdentifier>{50ed605a-9b4d-4e11-8abe-2382ec6f3832}</UniqueIdentifier>
+      <UniqueIdentifier>{14fa6811-10ee-40d3-8859-9860fd6d4233}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -18,25 +18,25 @@
     <ClCompile Include="ServerPacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="Protocol.pb.cc">
+    <ClCompile Include="pch.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Struct.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
     <ClCompile Include="Enum.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
-    <ClCompile Include="Struct.pb.cc">
+    <ClCompile Include="Protocol.pb.cc">
       <Filter>Protocol</Filter>
-    </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ServerPacketHandler.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="Protocol.pb.h">
-      <Filter>Protocol</Filter>
+    <ClInclude Include="pch.h">
+      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Struct.pb.h">
       <Filter>Protocol</Filter>
@@ -44,22 +44,8 @@
     <ClInclude Include="Enum.pb.h">
       <Filter>Protocol</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Utils</Filter>
+    <ClInclude Include="Protocol.pb.h">
+      <Filter>Protocol</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Common\protobuf\bin\Protocol.proto">
-      <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\Common\protobuf\bin\Enum.proto">
-      <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\Common\protobuf\bin\Struct.proto">
-      <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\Common\protobuf\bin\GenPackets.bat">
-      <Filter>Protocol</Filter>
-    </None>
   </ItemGroup>
 </Project>
