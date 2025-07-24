@@ -13,6 +13,7 @@
 #include "Room.h"
 #include "Player.h"
 #include <functional>
+#include "DBConnectionPool.h"
 
 enum
 {
@@ -37,9 +38,72 @@ void DoWorkerJob(ServerServiceRef& service)
 }
 int main()
 {
-	GRoom->DoTimer(1000, [] {cout << "Hello 1000" << '\n'; });
-	GRoom->DoTimer(2000, [] {cout << "Hello 2000" << '\n'; });
-	GRoom->DoTimer(3000, [] {cout << "Hello 3000" << '\n'; });
+	ASSERT_CRASH(GDBConnectionPool->Connect(1, L"Driver={ODBC Driver 18 for SQL Server};Server=(localdb)\\MSSQLLocalDB;Database=ServerDb;Trusted_Connection=Yes;"));
+
+	//Create Table
+	{													
+		auto query = L"									\
+			DROP TABLE IF EXISTS [dbo].[Gold];			\
+			CREATE TABLE [dbo].[Gold]					\
+			(											\
+				[id] INT NOT NULL PRIMARY KEY IDENTITY,	\
+				[gold] INT NULL							\
+			);";
+
+		DBConnection* dbConn = GDBConnectionPool->Pop();
+		ASSERT_CRASH(dbConn->Execute(query));
+		GDBConnectionPool->Push(dbConn);
+	}
+
+	{
+		//Add
+		for (int32 i = 0; i < 3; i++)
+		{
+			DBConnection* dbConn = GDBConnectionPool->Pop();
+
+			dbConn->Unbind();
+
+			//넘길 인자 바인딩
+			int32 gold = 100;
+			SQLLEN len = 0;
+
+			ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+				
+
+
+			ASSERT_CRASH(dbConn->Execute(L"INSERT INTO [dbo].[Gold]([gold]) VALUES(?)"));
+			GDBConnectionPool->Push(dbConn);
+		}
+	}
+
+	{
+		//Read
+		DBConnection* dbConn = GDBConnectionPool->Pop();
+		dbConn->Unbind();
+
+		int32 gold = 100;
+		SQLLEN len = 0;
+
+		ASSERT_CRASH(dbConn->BindParam(1, SQL_C_LONG, SQL_INTEGER, sizeof(gold), &gold, &len));
+
+		int32 outId = 0;
+		SQLLEN outIdLen = 0;
+
+		dbConn->BindCol(1, SQL_C_LONG, sizeof(outId), &outId, &outIdLen);
+
+		int32 outGold = 0;
+		SQLLEN outGoldLen = 0;
+
+		dbConn->BindCol(2, SQL_C_LONG, sizeof(outGold), &outGold, &outGoldLen);
+
+		ASSERT_CRASH(dbConn->Execute(L"SELECT id, gold FROM [dbo].[Gold] WHERE gold= (?)"));
+	
+		while (dbConn->Fetch())
+		{
+			cout << "Id" << outId << ", Gold:" << outGold << '\n';
+		}
+		GDBConnectionPool->Push(dbConn);
+	}
 
 	ClientPacketHandler::Init();
 
